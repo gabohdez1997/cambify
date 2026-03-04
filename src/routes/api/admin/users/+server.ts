@@ -1,10 +1,13 @@
 import { json } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { env as envPrivate } from '$env/dynamic/private';
+import { env as envPublic } from '$env/dynamic/public';
 
 // Initialize the Supabase Client with the Service Role Key to bypass RLS and act as admin
-const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+// Using lazy initialization for edge environments
+const getSupabaseAdmin = () => {
+    return createClient(envPublic.PUBLIC_SUPABASE_URL, envPrivate.SUPABASE_SERVICE_ROLE_KEY);
+};
 
 export async function POST({ request, locals }) {
     try {
@@ -17,6 +20,7 @@ export async function POST({ request, locals }) {
                 return json({ error: 'Falta el ID de usuario o la nueva contraseña' }, { status: 400 });
             }
 
+            const supabaseAdmin = getSupabaseAdmin();
             const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
                 targetUserId,
                 { password: newPassword }
@@ -32,6 +36,8 @@ export async function POST({ request, locals }) {
             if (!email || !password || !role) {
                 return json({ error: 'Faltan datos obligatorios (email, clave o rol)' }, { status: 400 });
             }
+
+            const supabaseAdmin = getSupabaseAdmin();
 
             // Create user in Auth schema directly bypassing email confirmation
             const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
