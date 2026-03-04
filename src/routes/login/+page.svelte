@@ -45,12 +45,13 @@
 <div class="login-container container">
     <div class="glass-panel login-card">
         <h1
-            class="page-title glass-engraved-text"
-            style="text-align: center; margin-bottom: 8px; font-size: 40px;"
+            class="page-title"
+            style="text-align: center; margin-bottom: 8px; font-size: 40px; display: flex; align-items: center; justify-content: center; gap: 12px;"
         >
-            Cambify
+            <span style="font-size: 1em;">💸</span>
+            <span class="glass-engraved-text">Cambify</span>
         </h1>
-        <p class="subtitle">Ingresa a tu cuenta</p>
+        <p class="subtitle">Gestión Inteligente de Finanzas</p>
 
         {#if errorMsg}
             <div class="error-message">{errorMsg}</div>

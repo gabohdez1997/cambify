@@ -79,8 +79,11 @@
 {:else if isAdmin}
     <header class="admin-header glass-panel">
         <div class="header-content">
-            <h2 class="glass-engraved-text" style="font-size: 24px; margin: 0;">
-                Cambify
+            <h2
+                style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px;"
+            >
+                <span style="font-size: 1.1em;">💸</span>
+                <span class="glass-engraved-text">Cambify</span>
             </h2>
             <button
                 class="btn btn-secondary"
