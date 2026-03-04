@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { env as envPublic } from '$env/dynamic/public';
+import { env as envPrivate } from '$env/dynamic/private';
 import * as cheerio from 'cheerio';
 import https from 'https';
 
@@ -30,7 +30,7 @@ export async function GET({ url }) {
     // const token = url.searchParams.get('token');
     // if (token !== 'MY_CRON_SECRET') return json({ error: 'Unauthorized' }, { status: 401 });
 
-    const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = createClient(envPublic.PUBLIC_SUPABASE_URL, envPrivate.SUPABASE_SERVICE_ROLE_KEY);
 
     try {
         // Today's Date in Venezuela (UTC-4)
