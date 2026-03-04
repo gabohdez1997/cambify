@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.98.0",
+		"cheerio": "^1.2.0",
 		"lucide-svelte": "^0.576.0"
 	}
 }

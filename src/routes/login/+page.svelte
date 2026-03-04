@@ -14,7 +14,7 @@
             data: { session },
         } = await supabase.auth.getSession();
         if (session) {
-            goto("/admin"); // Or to home based on role later
+            goto("/admin/cash"); // Redirect to cash dashboard by default
         }
     });
 
@@ -35,7 +35,7 @@
         }
 
         if (data.session) {
-            goto("/admin");
+            goto("/admin/cash");
         }
 
         loading = false;

@@ -22,28 +22,33 @@
                 return;
             }
 
-            // Fetch user role
+            // Fetch user profile
             const { data: profile, error } = await supabase
                 .from("profiles")
-                .select("role")
+                .select("role, status")
                 .eq("id", session.user.id)
                 .single();
 
-            if (error) {
-                errorMsg = "Error cargando perfil: " + error.message;
+            if (error || !profile) {
+                errorMsg = "Error cargando perfil o perfil no encontrado.";
                 loading = false;
                 return;
             }
 
-            if (!profile || profile.role !== "admin") {
-                errorMsg =
-                    "No tienes permisos de administrador. Rol actual: " +
-                    (profile?.role || "Ninguno");
+            if (profile.status !== "active") {
+                errorMsg = "Tu cuenta está deshabilitada.";
                 loading = false;
                 return;
             }
 
-            isAdmin = true;
+            // Route guard for /admin/users
+            if (window.location.pathname.startsWith('/admin/users') && profile.role !== "admin") {
+                errorMsg = "No tienes permisos de administrador para ver usuarios.";
+                loading = false;
+                return;
+            }
+
+            isAdmin = profile.role === "admin";
             loading = false;
         } catch (err: any) {
             errorMsg = "Error inesperado: " + err.message;
@@ -76,15 +81,19 @@
             >
         </div>
     </div>
-{:else if isAdmin}
+{:else}
     <header class="admin-header glass-panel">
         <div class="header-content">
-            <h2
-                style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px;"
-            >
+            <h2 style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.1em;">💸</span>
                 <span class="glass-engraved-text">Cambify</span>
             </h2>
+            <nav class="desktop-nav">
+                <a href="/admin/cash" class="nav-link" class:active={window.location.pathname === '/admin/cash'}>Caja</a>
+                {#if isAdmin}
+                    <a href="/admin/users" class="nav-link" class:active={window.location.pathname.startsWith('/admin/users')}>Usuarios</a>
+                {/if}
+            </nav>
             <button
                 class="btn btn-secondary"
                 on:click={signOut}
@@ -92,6 +101,14 @@
                 ><LogOut size={16} style="margin-right: 4px;" /> Salir</button
             >
         </div>
+        
+        <!-- Mobile Navigation -->
+        <nav class="mobile-nav">
+             <a href="/admin/cash" class="nav-link" class:active={window.location.pathname === '/admin/cash'}>Caja</a>
+             {#if isAdmin}
+                 <a href="/admin/users" class="nav-link" class:active={window.location.pathname.startsWith('/admin/users')}>Usuarios</a>
+             {/if}
+        </nav>
     </header>
 
     <main class="admin-main">
@@ -115,8 +132,52 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        max-width: 480px;
+        max-width: 800px;
         margin: 0 auto;
+    }
+
+    .desktop-nav {
+        display: none;
+        gap: 16px;
+    }
+
+    .mobile-nav {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        justify-content: center;
+        border-top: 1px solid var(--surface-border);
+        padding-top: 12px;
+    }
+
+    @media (min-width: 600px) {
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+        }
+        .mobile-nav {
+            display: none;
+        }
+    }
+
+    .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+        background: rgba(120, 120, 128, 0.1);
+        color: var(--text-color);
+    }
+
+    .nav-link.active {
+        color: var(--text-color);
+        background: var(--surface-border);
     }
 
     .admin-main {

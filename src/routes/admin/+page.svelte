@@ -3,7 +3,7 @@
     import { onMount } from "svelte";
 
     onMount(() => {
-        goto("/admin/users");
+        goto("/admin/cash");
     });
 </script>
 
@@ -11,5 +11,5 @@
     class="container"
     style="display: flex; align-items: center; justify-content: center; height: 100%;"
 >
-    <p>Redirigiendo a usuarios...</p>
+    <p>Redirigiendo a caja...</p>
 </div>

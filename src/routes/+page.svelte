@@ -8,7 +8,7 @@
             data: { session },
         } = await supabase.auth.getSession();
         if (session) {
-            goto("/admin");
+            goto("/admin/cash");
         } else {
             goto("/login");
         }
