@@ -218,7 +218,7 @@
 
         if (
             !confirm(
-                `¿Estás seguro de cerrar la jornada actual?\n\n💰 Tu comisión de hoy (1% de salidas) es:\n${comVes} / ${comUsd}\n\nNo podrás agregar más movimientos después de cerrar.`,
+                `¿Estás seguro de cerrar la jornada actual?\n\n💰 Tu comisión de hoy (1% de entradas) es:\n${comVes} / ${comUsd}\n\nNo podrás agregar más movimientos después de cerrar.`,
             )
         )
             return;
@@ -440,26 +440,26 @@
         .filter((m) => m.type === "out" && m.currency === "USD")
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
-    // Commission (1% of total outgoing, excluding bank commissions)
-    $: eligibleOutVes = movements
+    // Commission (1% of total incoming, excluding bank commissions)
+    $: eligibleInVes = movements
         .filter(
             (m) =>
-                m.type === "out" &&
+                m.type === "in" &&
                 m.currency === "VES" &&
                 !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
         )
         .reduce((sum, m) => sum + Number(m.amount), 0);
-    $: eligibleOutUsd = movements
+    $: eligibleInUsd = movements
         .filter(
             (m) =>
-                m.type === "out" &&
+                m.type === "in" &&
                 m.currency === "USD" &&
                 !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
         )
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
-    $: commissionVes = eligibleOutVes * 0.01;
-    $: commissionUsd = eligibleOutUsd * 0.01;
+    $: commissionVes = eligibleInVes * 0.01;
+    $: commissionUsd = eligibleInUsd * 0.01;
 
     // Unificado a VES
     $: totalEquivalentVes = currentRate
