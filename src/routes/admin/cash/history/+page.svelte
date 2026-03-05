@@ -28,6 +28,10 @@
         .filter((m) => m.type === "out" && m.currency === "USD")
         .reduce((sum, m) => sum + m.amount, 0);
 
+    // Commission calculations (1% of outgoing movements)
+    $: commissionBs = totalOutBs * 0.01;
+    $: commissionUsd = totalOutUsd * 0.01;
+
     onMount(() => {
         fetchMovementsForDate();
     });
@@ -145,6 +149,22 @@
                     <span
                         style="font-size: 14px; color: var(--text-secondary); margin-left:8px;"
                         >({formatMoney(totalOutUsd, "USD")})</span
+                    >
+                </div>
+            </div>
+            <div
+                class="stat-card glass-panel"
+                style="border-left: 4px solid #f59e0b;"
+            >
+                <h3 class="stat-title">Mi Comisión (1%)</h3>
+                <div
+                    class="stat-value"
+                    style="font-size: 20px; color: #f59e0b;"
+                >
+                    {formatMoney(commissionBs, "VES")}
+                    <span
+                        style="font-size: 14px; color: var(--text-secondary); margin-left:8px;"
+                        >({formatMoney(commissionUsd, "USD")})</span
                     >
                 </div>
             </div>
