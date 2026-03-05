@@ -617,7 +617,6 @@
                     <input
                         type="file"
                         accept="image/*"
-                        capture="environment"
                         style="display: none;"
                         bind:this={fileInput}
                         on:change={handleScanUpload}
