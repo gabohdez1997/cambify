@@ -28,9 +28,26 @@
         .filter((m) => m.type === "out" && m.currency === "USD")
         .reduce((sum, m) => sum + m.amount, 0);
 
-    // Commission calculations (1% of outgoing movements)
-    $: commissionBs = totalOutBs * 0.01;
-    $: commissionUsd = totalOutUsd * 0.01;
+    // Commission calculations (1% of outgoing movements, excluding bank fees)
+    $: eligibleOutBs = movements
+        .filter(
+            (m) =>
+                m.type === "out" &&
+                m.currency === "VES" &&
+                !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
+        )
+        .reduce((sum, m) => sum + m.amount, 0);
+    $: eligibleOutUsd = movements
+        .filter(
+            (m) =>
+                m.type === "out" &&
+                m.currency === "USD" &&
+                !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
+        )
+        .reduce((sum, m) => sum + m.amount, 0);
+
+    $: commissionBs = eligibleOutBs * 0.01;
+    $: commissionUsd = eligibleOutUsd * 0.01;
 
     onMount(() => {
         fetchMovementsForDate();

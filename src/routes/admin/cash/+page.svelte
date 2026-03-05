@@ -440,9 +440,26 @@
         .filter((m) => m.type === "out" && m.currency === "USD")
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
-    // Commission (1% of total outgoing)
-    $: commissionVes = totalOutVes * 0.01;
-    $: commissionUsd = totalOutUsd * 0.01;
+    // Commission (1% of total outgoing, excluding bank commissions)
+    $: eligibleOutVes = movements
+        .filter(
+            (m) =>
+                m.type === "out" &&
+                m.currency === "VES" &&
+                !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
+        )
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+    $: eligibleOutUsd = movements
+        .filter(
+            (m) =>
+                m.type === "out" &&
+                m.currency === "USD" &&
+                !/comisi(?:o|ó)n|com banca/i.test(m.description || ""),
+        )
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+    $: commissionVes = eligibleOutVes * 0.01;
+    $: commissionUsd = eligibleOutUsd * 0.01;
 
     // Unificado a VES
     $: totalEquivalentVes = currentRate
@@ -700,7 +717,7 @@
                                                 type="button"
                                                 class="btn-icon"
                                                 title="Editar Movimiento"
-                                                on:click={() =>
+                                                on:click|preventDefault|stopPropagation={() =>
                                                     openEditModal(mov)}
                                             >
                                                 <Edit size={16} />
@@ -709,7 +726,7 @@
                                                 type="button"
                                                 class="btn-icon text-danger"
                                                 title="Eliminar Movimiento"
-                                                on:click={() =>
+                                                on:click|preventDefault|stopPropagation={() =>
                                                     deleteMovement(mov.id)}
                                             >
                                                 <Trash2 size={16} />
@@ -972,6 +989,8 @@
         display: flex;
         gap: 8px;
         align-items: center;
+        position: relative;
+        z-index: 10;
     }
 
     .btn-icon {
@@ -979,6 +998,7 @@
         border: none;
         padding: 6px;
         cursor: pointer;
+        pointer-events: auto;
         color: var(--text-secondary);
         border-radius: 4px;
         display: flex;
