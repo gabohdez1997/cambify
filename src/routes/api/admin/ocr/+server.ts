@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from './$types';
 import { env } from '$env/dynamic/private';
-import { supabase } from '$lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 
 // Since Vercel edge/serverless can have issues with the @google-cloud/vision Node SDK
 // (which relies on native gRPC binaries), we will instead use the direct REST API approach.
@@ -16,11 +16,27 @@ export async function POST({ request }: RequestEvent) {
         }
 
         const token = authHeader.replace('Bearer ', '');
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+        // Vercel Edge functions / Serverless environments need a stateless validation
+        // the generic supabase client might throw "Auth session missing!" if used directly.
+        // We create a fresh client instance just to validate this specific token.
+        const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || env.PUBLIC_SUPABASE_URL || '';
+        const supabaseKey = process.env.PUBLIC_SUPABASE_ANON_KEY || env.PUBLIC_SUPABASE_ANON_KEY || '';
+
+        const authClient = createClient(supabaseUrl, supabaseKey, {
+            global: {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        });
+
+        const { data: { user }, error: authError } = await authClient.auth.getUser();
 
         if (authError || !user) {
             return json({ error: `Token inválido o expirado: ${authError?.message || 'Usuario no encontrado'}` }, { status: 401 });
         }
+
         const { imageBase64 } = await request.json();
 
         if (!imageBase64) {
