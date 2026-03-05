@@ -79,7 +79,7 @@
             .on(
                 "postgres_changes",
                 { event: "*", schema: "public", table: "cash_sessions" },
-                (payload) => {
+                (payload: any) => {
                     if (activeSession && payload.new.id === activeSession.id) {
                         activeSession = payload.new;
                     } else if (payload.new.status === "open") {
@@ -99,7 +99,7 @@
             .on(
                 "postgres_changes",
                 { event: "INSERT", schema: "public", table: "cash_movements" },
-                (payload) => {
+                (payload: any) => {
                     if (
                         activeSession &&
                         payload.new.session_id === activeSession.id
@@ -287,12 +287,16 @@
 
     // Edit & Delete Methods
     function openEditModal(mov: any) {
-        editingMovement = mov;
-        editAmount = mov.amount.toString();
-        editCurrency = mov.currency;
-        editDescription = mov.description || "";
-        editType = mov.type;
-        showEditModal = true;
+        try {
+            editingMovement = mov;
+            editAmount = mov.amount.toString();
+            editCurrency = mov.currency;
+            editDescription = mov.description || "";
+            editType = mov.type;
+            showEditModal = true;
+        } catch (e: any) {
+            alert("Error abriendo edición: " + e.message);
+        }
     }
 
     function closeEditModal() {
@@ -515,6 +519,7 @@
                 entrada y salida de dinero.
             </p>
             <button
+                type="button"
                 class="btn btn-primary"
                 on:click={openSession}
                 style="font-size: 16px; padding: 12px 24px;"
@@ -559,6 +564,7 @@
                     </h3>
                     {#if currentRate}
                         <button
+                            type="button"
                             class="btn btn-secondary"
                             style="padding: 4px 10px; font-size: 11px; height: auto;"
                             on:click={() =>
@@ -598,12 +604,14 @@
         <!-- Actions -->
         <div class="actions-grid">
             <button
+                type="button"
                 class="btn btn-primary btn-in"
                 on:click={() => openMovementForm("in")}
             >
                 <TrendingUp size={18} style="margin-right: 6px;" /> Registrar Entrada
             </button>
             <button
+                type="button"
                 class="btn btn-primary btn-out"
                 on:click={() => openMovementForm("out")}
             >
@@ -613,6 +621,7 @@
                 <History size={16} style="margin-right: 6px;" /> Historial
             </a>
             <button
+                type="button"
                 class="btn btn-secondary btn-close-session"
                 on:click={closeSession}
             >
@@ -688,6 +697,7 @@
                                     <td>
                                         <div class="actions-cell">
                                             <button
+                                                type="button"
                                                 class="btn-icon"
                                                 title="Editar Movimiento"
                                                 on:click={() =>
@@ -696,6 +706,7 @@
                                                 <Edit size={16} />
                                             </button>
                                             <button
+                                                type="button"
                                                 class="btn-icon text-danger"
                                                 title="Eliminar Movimiento"
                                                 on:click={() =>

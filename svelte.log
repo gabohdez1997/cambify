@@ -1,0 +1,11 @@
+1772684620091 START "c:\\Users\\Gabri\\Desktop\\Cambify"
+1772684620106 WARNING "src\\routes\\admin\\cash\\+page.svelte" 1015:5 "Unused CSS selector \".spin\"\nhttps://svelte.dev/e/css_unused_selector"
+1772684620106 WARNING "src\\routes\\admin\\cash\\+page.svelte" 1080:5 "Unused CSS selector \".highlight-card\"\nhttps://svelte.dev/e/css_unused_selector"
+1772684620106 ERROR "src\\routes\\admin\\cash\\+page.svelte" 83:54 "Property 'id' does not exist on type '{} | { [key: string]: any; }'.\n  Property 'id' does not exist on type '{}'."
+1772684620106 ERROR "src\\routes\\admin\\cash\\+page.svelte" 85:44 "Property 'status' does not exist on type '{} | { [key: string]: any; }'.\n  Property 'status' does not exist on type '{}'."
+1772684620107 ERROR "src\\routes\\admin\\cash\\+page.svelte" 90:37 "Property 'status' does not exist on type '{} | { [key: string]: any; }'.\n  Property 'status' does not exist on type '{}'."
+1772684620107 ERROR "src\\routes\\admin\\cash\\+page.svelte" 92:37 "Property 'id' does not exist on type '{} | { [key: string]: any; }'.\n  Property 'id' does not exist on type '{}'."
+1772684620107 WARNING "src\\routes\\admin\\cash\\history\\+page.svelte" 305:5 "Unused CSS selector \".spin\"\nhttps://svelte.dev/e/css_unused_selector"
+1772684620107 WARNING "src\\routes\\app\\+page.svelte" 311:5 "Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type=\"button\">` or `<a>` might be more appropriate\nhttps://svelte.dev/e/a11y_click_events_have_key_events"
+1772684620107 WARNING "src\\routes\\app\\+page.svelte" 311:5 "`<div>` with a click handler must have an ARIA role\nhttps://svelte.dev/e/a11y_no_static_element_interactions"
+1772684620107 COMPLETED 4140 FILES 4 ERRORS 5 WARNINGS 3 FILES_WITH_PROBLEMS
