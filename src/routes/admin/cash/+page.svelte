@@ -199,13 +199,15 @@
             activeSession = data;
             movements = [];
         }
+    }
+
     async function closeSession() {
         const comVes = formatMoney(commissionVes, "VES");
         const comUsd = formatMoney(commissionUsd, "USD");
-        
+
         if (
             !confirm(
-                `¿Estás seguro de cerrar la jornada actual?\n\n💰 Tu comisión de hoy (1% de salidas) es:\n${comVes} / ${comUsd}\n\nNo podrás agregar más movimientos después de cerrar.`
+                `¿Estás seguro de cerrar la jornada actual?\n\n💰 Tu comisión de hoy (1% de salidas) es:\n${comVes} / ${comUsd}\n\nNo podrás agregar más movimientos después de cerrar.`,
             )
         )
             return;
@@ -363,7 +365,7 @@
     $: totalOutUsd = movements
         .filter((m) => m.type === "out" && m.currency === "USD")
         .reduce((sum, m) => sum + Number(m.amount), 0);
-        
+
     // Commission (1% of total outgoing)
     $: commissionVes = totalOutVes * 0.01;
     $: commissionUsd = totalOutUsd * 0.01;
