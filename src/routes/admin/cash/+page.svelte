@@ -458,8 +458,13 @@
         )
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
-    $: commissionVes = eligibleInVes * 0.01;
-    $: commissionUsd = eligibleInUsd * 0.01;
+    $: commissionVes = currentRate
+        ? (eligibleInVes + eligibleInUsd * currentRate) * 0.01
+        : eligibleInVes * 0.01;
+
+    $: commissionUsd = currentRate
+        ? (eligibleInUsd + eligibleInVes / currentRate) * 0.01
+        : eligibleInUsd * 0.01;
 
     // Unificado a VES
     $: totalEquivalentVes = currentRate

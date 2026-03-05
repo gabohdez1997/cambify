@@ -13,6 +13,7 @@
     let loading = false;
     let selectedDate = new Date().toISOString().split("T")[0]; // Defaults to today
     let movements: any[] = [];
+    let currentRate: number | null = null;
 
     // Derived stats
     $: totalInBs = movements
@@ -46,8 +47,12 @@
         )
         .reduce((sum, m) => sum + m.amount, 0);
 
-    $: commissionBs = eligibleInBs * 0.01;
-    $: commissionUsd = eligibleInUsd * 0.01;
+    $: commissionBs = currentRate
+        ? (eligibleInBs + eligibleInUsd * currentRate) * 0.01
+        : eligibleInBs * 0.01;
+    $: commissionUsd = currentRate
+        ? (eligibleInUsd + eligibleInBs / currentRate) * 0.01
+        : eligibleInUsd * 0.01;
 
     onMount(() => {
         fetchMovementsForDate();
@@ -60,6 +65,14 @@
         // Create range for the selected day in local timezone roughly
         const startOfDay = new Date(selectedDate + "T00:00:00").toISOString();
         const endOfDay = new Date(selectedDate + "T23:59:59.999").toISOString();
+
+        // Obtener la tasa de cambio del día seleccionado
+        const { data: rateData } = await supabase
+            .from("exchange_rates")
+            .select("ves_to_usd")
+            .eq("date", selectedDate)
+            .maybeSingle();
+        currentRate = rateData?.ves_to_usd || null;
 
         const { data, error } = await supabase
             .from("cash_movements")
