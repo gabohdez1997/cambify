@@ -13,6 +13,8 @@
         History,
         Plus,
         ScanText,
+        Trash2,
+        Edit,
     } from "lucide-svelte";
     import { page } from "$app/stores";
 
@@ -37,6 +39,15 @@
     let isSubmitting = false;
     let isScanning = false;
     let fileInput: HTMLInputElement;
+
+    // Edit Movement State
+    let showEditModal = false;
+    let editingMovement: any = null;
+    let editAmount: string = "";
+    let editCurrency: "USD" | "VES" = "VES";
+    let editDescription: string = "";
+    let editType: "in" | "out" = "in";
+    let isSubmittingEdit = false;
 
     // View State
     let showConvertedUsd = false;
@@ -271,6 +282,65 @@
             // Fallback: Manually re-fetch session and movements to ensure UI updates
             // even if Supabase Realtime fails to broadcast the event.
             await fetchActiveSession();
+        }
+    }
+
+    // Edit & Delete Methods
+    function openEditModal(mov: any) {
+        editingMovement = mov;
+        editAmount = mov.amount.toString();
+        editCurrency = mov.currency;
+        editDescription = mov.description || "";
+        editType = mov.type;
+        showEditModal = true;
+    }
+
+    function closeEditModal() {
+        showEditModal = false;
+        editingMovement = null;
+    }
+
+    async function submitEditMovement() {
+        const amountNum = parseFloat(editAmount);
+        if (isNaN(amountNum) || amountNum <= 0) {
+            alert("Ingresa un monto válido mayor a 0");
+            return;
+        }
+
+        isSubmittingEdit = true;
+        const { error } = await supabase
+            .from("cash_movements")
+            .update({
+                type: editType,
+                amount: amountNum,
+                currency: editCurrency,
+                description: editDescription.trim(),
+            })
+            .eq("id", editingMovement.id);
+
+        isSubmittingEdit = false;
+
+        if (error) {
+            alert("Error actualizando movimiento: " + error.message);
+        } else {
+            closeEditModal();
+            await refreshDataSilent();
+        }
+    }
+
+    async function deleteMovement(id: string) {
+        if (!confirm("¿Estás seguro de que deseas eliminar este movimiento?"))
+            return;
+
+        const { error } = await supabase
+            .from("cash_movements")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            alert("Error al eliminar movimiento: " + error.message);
+        } else {
+            await refreshDataSilent();
         }
     }
 
@@ -570,6 +640,7 @@
                                 <th>Tipo</th>
                                 <th>Monto</th>
                                 <th>Concepto</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -612,6 +683,26 @@
                                         </div>
                                         <div class="user-cell">
                                             {mov.profiles?.email || "Sistema"}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="actions-cell">
+                                            <button
+                                                class="btn-icon"
+                                                title="Editar Movimiento"
+                                                on:click={() =>
+                                                    openEditModal(mov)}
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                class="btn-icon text-danger"
+                                                title="Eliminar Movimiento"
+                                                on:click={() =>
+                                                    deleteMovement(mov.id)}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -759,9 +850,140 @@
             </div>
         </div>
     {/if}
+
+    <!-- Edit Movement Modal -->
+    {#if showEditModal}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div class="modal-backdrop" on:click={closeEditModal}>
+            <div class="modal-content glass-panel" on:click|stopPropagation>
+                <h2
+                    style="margin-bottom: 24px; display: flex; align-items: center; gap: 8px;"
+                >
+                    <Edit size={24} /> Editar Movimiento
+                </h2>
+
+                <div class="input-group">
+                    <label class="input-label" for="editMovType"
+                        >Tipo de Movimiento</label
+                    >
+                    <div class="currency-toggle">
+                        <button
+                            class="btn {editType === 'in'
+                                ? 'btn-in'
+                                : 'btn-secondary'}"
+                            on:click={() => (editType = "in")}
+                            style="flex:1;">Entrada</button
+                        >
+                        <button
+                            class="btn {editType === 'out'
+                                ? 'btn-out'
+                                : 'btn-secondary'}"
+                            on:click={() => (editType = "out")}
+                            style="flex:1;">Salida</button
+                        >
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="editMovCurrency"
+                        >Moneda</label
+                    >
+                    <div class="currency-toggle">
+                        <button
+                            class="btn {editCurrency === 'USD'
+                                ? 'btn-primary'
+                                : 'btn-secondary'}"
+                            on:click={() => (editCurrency = "USD")}
+                            style="flex:1;">USD</button
+                        >
+                        <button
+                            class="btn {editCurrency === 'VES'
+                                ? 'btn-primary'
+                                : 'btn-secondary'}"
+                            on:click={() => (editCurrency = "VES")}
+                            style="flex:1;">BS</button
+                        >
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="editMovAmount"
+                        >Monto ({editCurrency === "VES" ? "BS" : "USD"})</label
+                    >
+                    <input
+                        id="editMovAmount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="input-field amount-input"
+                        placeholder="0.00"
+                        bind:value={editAmount}
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="editMovDesc"
+                        >Concepto / Descripción (Opcional)</label
+                    >
+                    <input
+                        id="editMovDesc"
+                        type="text"
+                        class="input-field"
+                        placeholder="Ej: Pago de cliente Maria, Retiro..."
+                        bind:value={editDescription}
+                    />
+                </div>
+
+                <div class="modal-actions">
+                    <button
+                        class="btn btn-secondary"
+                        style="flex: 1;"
+                        on:click={closeEditModal}
+                        disabled={isSubmittingEdit}>Cancelar</button
+                    >
+                    <button
+                        class="btn {editType === 'in' ? 'btn-in' : 'btn-out'}"
+                        style="flex: 1;"
+                        on:click={submitEditMovement}
+                        disabled={isSubmittingEdit}
+                    >
+                        {isSubmittingEdit ? "Guardando..." : "Guardar Cambios"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .btn-icon {
+        background: none;
+        border: none;
+        padding: 6px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--accent-color);
+    }
+    .btn-icon.text-danger:hover {
+        color: #ff3b30;
+        background: rgba(255, 59, 48, 0.1);
+    }
     .dashboard {
         padding-top: 24px;
         padding-bottom: 24px;
