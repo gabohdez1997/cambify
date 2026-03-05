@@ -42,8 +42,12 @@
             }
 
             // Route guard for /admin/users
-            if (window.location.pathname.startsWith('/admin/users') && profile.role !== "admin") {
-                errorMsg = "No tienes permisos de administrador para ver usuarios.";
+            if (
+                window.location.pathname.startsWith("/admin/users") &&
+                profile.role !== "admin"
+            ) {
+                errorMsg =
+                    "No tienes permisos de administrador para ver usuarios.";
                 loading = false;
                 return;
             }
@@ -84,14 +88,27 @@
 {:else}
     <header class="admin-header glass-panel">
         <div class="header-content">
-            <h2 style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <h2
+                style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 8px;"
+            >
                 <span style="font-size: 1.1em;">💸</span>
                 <span class="glass-engraved-text">Cambify</span>
             </h2>
             <nav class="desktop-nav">
-                <a href="/admin/cash" class="nav-link" class:active={window.location.pathname === '/admin/cash'}>Caja</a>
+                <a
+                    href="/admin/cash"
+                    class="nav-link"
+                    class:active={window.location.pathname === "/admin/cash"}
+                    >Caja</a
+                >
                 {#if isAdmin}
-                    <a href="/admin/users" class="nav-link" class:active={window.location.pathname.startsWith('/admin/users')}>Usuarios</a>
+                    <a
+                        href="/admin/users"
+                        class="nav-link"
+                        class:active={window.location.pathname.startsWith(
+                            "/admin/users",
+                        )}>Usuarios</a
+                    >
                 {/if}
             </nav>
             <button
@@ -101,13 +118,24 @@
                 ><LogOut size={16} style="margin-right: 4px;" /> Salir</button
             >
         </div>
-        
+
         <!-- Mobile Navigation -->
         <nav class="mobile-nav">
-             <a href="/admin/cash" class="nav-link" class:active={window.location.pathname === '/admin/cash'}>Caja</a>
-             {#if isAdmin}
-                 <a href="/admin/users" class="nav-link" class:active={window.location.pathname.startsWith('/admin/users')}>Usuarios</a>
-             {/if}
+            <a
+                href="/admin/cash"
+                class="nav-link"
+                class:active={window.location.pathname === "/admin/cash"}
+                >Caja</a
+            >
+            {#if isAdmin}
+                <a
+                    href="/admin/users"
+                    class="nav-link"
+                    class:active={window.location.pathname.startsWith(
+                        "/admin/users",
+                    )}>Usuarios</a
+                >
+            {/if}
         </nav>
     </header>
 
