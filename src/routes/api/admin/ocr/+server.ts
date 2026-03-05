@@ -1,19 +1,26 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from './$types';
 import { env } from '$env/dynamic/private';
+import { supabase } from '$lib/supabaseClient';
 
 // Since Vercel edge/serverless can have issues with the @google-cloud/vision Node SDK
 // (which relies on native gRPC binaries), we will instead use the direct REST API approach.
 // That is much safer for SvelteKit on Vercel.
 
-export async function POST({ request, locals }: RequestEvent) {
-    // 1. Authenticate user
-    const session = await locals.getSession();
-    if (!session) {
-        return json({ error: 'No autorizado' }, { status: 401 });
-    }
-
+export async function POST({ request }: RequestEvent) {
     try {
+        // 1. Authenticate user via Authorization Header
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return json({ error: 'No autorizado. Se requiere token.' }, { status: 401 });
+        }
+
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+        if (authError || !user) {
+            return json({ error: 'Token inválido o expirado' }, { status: 401 });
+        }
         const { imageBase64 } = await request.json();
 
         if (!imageBase64) {

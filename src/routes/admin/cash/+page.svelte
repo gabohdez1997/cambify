@@ -281,9 +281,21 @@
             reader.onload = async () => {
                 const base64String = reader.result as string;
 
+                const { data: sessionData } = await supabase.auth.getSession();
+                const session = sessionData?.session;
+
+                if (!session) {
+                    alert("No estás autenticado o la sesión expiró.");
+                    isScanning = false;
+                    return;
+                }
+
                 const response = await fetch("/api/admin/ocr", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
                     body: JSON.stringify({ imageBase64: base64String }),
                 });
 
