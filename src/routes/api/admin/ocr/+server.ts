@@ -114,14 +114,47 @@ export async function POST({ request }: RequestEvent) {
         }
 
         // --- Monto ---
-        // Amount often format is "1.500,00" or "1,500.00" or just "1500" often near "Bs", "VED", "VES", "Monto"
-        const amountRegex = /(?:Bs[\.\s]*|VES[\s]*|Monto[:\s]*\$?)(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{1,2})?)/i;
-        const amountMatch = fullText.match(amountRegex);
+        // Match both Prefix (Bs 12,00) and Suffix (12,00 Bs) variants
+        const contextualAmountRegex = /(?:Bs(?:oberano|s)?[\.\s]*|VES[\s]*|Monto[:\s]*\$?)\s*(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{1,2})?)|(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{1,2})?)\s*(?:Bs(?:oberano|s)?\.?|VES)/i;
+        const amountMatch = fullText.match(contextualAmountRegex);
 
-        if (amountMatch && amountMatch[1]) {
-            // Need to convert "1.500,00" to JS number "1500.00"
-            let rawAmount = amountMatch[1];
+        let rawAmount = "";
 
+        if (amountMatch) {
+            rawAmount = amountMatch[1] || amountMatch[2];
+        } else {
+            // Fallback: Just grab the largest decimal number we can find in the entire text
+            // Typically receipts have the total amount as the most prominent / largest number
+            const decimalRegex = /\b\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{1,2})?\b/g;
+            const allNumbers = fullText.match(decimalRegex);
+
+            if (allNumbers && allNumbers.length > 0) {
+                let maxVal = -1;
+                for (let n of allNumbers) {
+                    // Clean up for standard JS parsing
+                    let cleanN = n;
+                    if (cleanN.includes('.') && cleanN.includes(',')) {
+                        if (cleanN.lastIndexOf(',') > cleanN.lastIndexOf('.')) {
+                            cleanN = cleanN.replace(/\./g, '').replace(',', '.'); // 1.500,00 -> 1500.00
+                        } else {
+                            cleanN = cleanN.replace(/,/g, ''); // 1,500.00 -> 1500.00
+                        }
+                    } else if (cleanN.includes(',')) {
+                        cleanN = cleanN.replace(',', '.');
+                    }
+
+                    let val = parseFloat(cleanN);
+                    // We ignore obvious dates or tiny numbers if there's a larger one
+                    if (!isNaN(val) && val > maxVal) {
+                        maxVal = val;
+                        rawAmount = n; // keep original string format
+                    }
+                }
+            }
+        }
+
+        if (rawAmount) {
+            // Need to convert Venezuelan format "1.500,00" to JS valid float string "1500.00"
             if (rawAmount.includes('.') && rawAmount.includes(',')) {
                 if (rawAmount.lastIndexOf(',') > rawAmount.lastIndexOf('.')) {
                     // Venezuelan: comma is decimal
