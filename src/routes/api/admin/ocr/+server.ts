@@ -19,7 +19,7 @@ export async function POST({ request }: RequestEvent) {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
         if (authError || !user) {
-            return json({ error: 'Token inválido o expirado' }, { status: 401 });
+            return json({ error: `Token inválido o expirado: ${authError?.message || 'Usuario no encontrado'}` }, { status: 401 });
         }
         const { imageBase64 } = await request.json();
 
