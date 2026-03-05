@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from './$types';
-import { env } from '$env/dynamic/private';
+import { env as privateEnv } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import { createClient } from '@supabase/supabase-js';
 
 // Since Vercel edge/serverless can have issues with the @google-cloud/vision Node SDK
@@ -20,8 +21,8 @@ export async function POST({ request }: RequestEvent) {
         // Vercel Edge functions / Serverless environments need a stateless validation
         // the generic supabase client might throw "Auth session missing!" if used directly.
         // We create a fresh client instance just to validate this specific token.
-        const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || env.PUBLIC_SUPABASE_URL || '';
-        const supabaseKey = process.env.PUBLIC_SUPABASE_ANON_KEY || env.PUBLIC_SUPABASE_ANON_KEY || '';
+        const supabaseUrl = publicEnv.PUBLIC_SUPABASE_URL || '';
+        const supabaseKey = publicEnv.PUBLIC_SUPABASE_ANON_KEY || '';
 
         const authClient = createClient(supabaseUrl, supabaseKey, {
             global: {
@@ -49,14 +50,14 @@ export async function POST({ request }: RequestEvent) {
         // 2. Prepare Google Vision REST API Call
         let googleApiKey = "";
 
-        if (env.GOOGLE_VISION_API_KEY) {
-            googleApiKey = env.GOOGLE_VISION_API_KEY;
+        if (privateEnv.GOOGLE_VISION_API_KEY) {
+            googleApiKey = privateEnv.GOOGLE_VISION_API_KEY;
         } else {
             // Let's try to extract standard API KEY from the Service Account JSON if they uploaded that instead
-            if (env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+            if (privateEnv.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
                 try {
-                    const creds = JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-                    if (creds && typeof creds === 'string' && !creds.client_email) {
+                    const creds = JSON.parse(privateEnv.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+                    if (creds && typeof creds === 'string') {
                         // Sometimes users just paste an actual simple API KEY into the JSON var by mistake. Let's handle it graciously.
                         googleApiKey = creds;
                     }
